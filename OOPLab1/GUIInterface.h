@@ -14,6 +14,7 @@ namespace KHAS {
         short width_;
         short height_;
         RECT rect_;
+        RECT drawing_rectangle_;
         HWND hwnd_;
         HDC hdc_; 
         std::vector<tPoint> tPoints_;
@@ -24,16 +25,18 @@ namespace KHAS {
         void setSelfWindow()                    const;
         void hideCursor()                       const;
         void showHeader(HDC& hdc)               const;
-        void showMenu(HDC& hdc)                 const;
-        void showStaticModel()                  const;
-        void showDinamycModel()                 const;
-        void showRandomModel()                  const;
-        void clearModel()                       const;
         void setBufferWindowSize()              const;
         void disableSelectionInConsole()        const;
         void updateStyleWindow()                const;
         void deletePropertiesFromSystemMenu()   const;
         void setWindowPosition()                const;
+        void showTPoints()                           ;
+        void showMenu(HDC& hdc)                      ;
+        void showStaticModel()                       ;
+        void showDinamycModel()                      ;
+        void showRandomModel()                       ;
+        void clearModel()                            ; 
+        void fillTPoints()                           ;
 
         template <typename ... TString, typename = std::enable_if_t<
             (std::is_convertible_v<std::decay_t<TString>, std::string> && ...) >>
@@ -42,7 +45,7 @@ namespace KHAS {
 
         GUIInterface() = delete;
         GUIInterface(short width, short height);
-        void loop() const;
+        void loop();
     };
 
 }
