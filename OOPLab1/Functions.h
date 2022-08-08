@@ -17,15 +17,7 @@ namespace KHAS {
 
 	std::pair<int, int> getCursorPos();
 
-	void updateStyleWindow();
 
-	void deletePropertiesFromSystemMenu();
-
-	void disableSelectionInConsole();
-
-	void setBufferWindowSize();
-
-	void setWindowPosition(int width, int height);
 }
 
 #include "Functions.hpp"

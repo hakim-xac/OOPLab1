@@ -2,6 +2,14 @@
 #include <sstream>
 
 namespace KHAS {
+
+
+	tPoint::tPoint()
+		: pos_x_()
+		, pos_y_()
+		, color_()
+		, name_() {}
+
 	Color tPoint::getColor() const
 	{
 		return color_;

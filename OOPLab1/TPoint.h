@@ -13,13 +13,11 @@ namespace KHAS {
 		int pos_x_;
 		int pos_y_;
 		KHAS::Color color_;
+		std::string name_;
 
 	public:
 
-		tPoint()
-			: pos_x_()
-			, pos_y_()
-			, color_() {}
+		tPoint();
 
 		Color getColor() const;
 		int getPositionX() const;

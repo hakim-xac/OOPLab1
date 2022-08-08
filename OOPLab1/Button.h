@@ -18,16 +18,19 @@ namespace KHAS {
 	public:
 		Button() = delete;
 
-		template <typename TName, typename TBrushColor, typename TPenColor, typename = std::enable_if_t<
+		template <typename TName, typename TRect, typename TBrushColor, typename TPenColor, typename TFunc
+			, typename = std::enable_if_t<
 			std::is_convertible_v<std::decay_t<TName>, std::string>
+			&& std::is_convertible_v<std::decay_t<TRect>, RECT>
 			&& std::is_same_v<TBrushColor, Color>
 			&& std::is_same_v<TPenColor, Color>
 			>>
 			Button(const HDC& hdc
-				,int x, int y, int right, int bottom
+				, TRect&& rect
 				, TName&& name
 				, TBrushColor&& brush_color
-				, TPenColor&& pen_color);
+				, TPenColor&& pen_color
+				, TFunc func);
 	};
 }
 

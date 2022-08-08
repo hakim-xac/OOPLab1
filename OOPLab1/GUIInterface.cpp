@@ -14,21 +14,31 @@ namespace KHAS {
         , height_(height)
         , rect_()
         , hwnd_(GetConsoleWindow())
-        , hdc_(GetDC(hwnd_)) {
+        , hdc_(GetDC(hwnd_))
+        , tPoints_(100)  {
 
             setSelfWindow();
+
             GetClientRect(hwnd_, &rect_);
             rect_.right += 17;
+
         }
 
-    void GUIInterface::setSelfWindow() {
+    void GUIInterface::setSelfWindow() const {
 
-
-        setWindowPosition(width_, height_);
+        setWindowPosition();
         setBufferWindowSize();
         disableSelectionInConsole();
         deletePropertiesFromSystemMenu();
         updateStyleWindow();
+    }
+
+    void GUIInterface::setBufferWindowSize() const
+    {
+        CONSOLE_SCREEN_BUFFER_INFO csi;
+        GetConsoleScreenBufferInfo(hwnd_, &csi);
+        short y{ csi.srWindow.Bottom - csi.srWindow.Top + 1 };
+        SetConsoleScreenBufferSize(hwnd_, { csi.dwSize.X, y });
     }
 
     void GUIInterface::hideCursor() const
@@ -66,21 +76,86 @@ namespace KHAS {
 
     void GUIInterface::showMenu(HDC& hdc) const
     {
+        auto del{ delimiter('=') };
+        TextOut(hdc, 0, rect_.bottom - 260, del.c_str(), static_cast<int>(del.length()));
+
         Button bt_static{ hdc
-            , 150, rect_.bottom - 160, 300, 40
+            , RECT{ 150, rect_.bottom - 210, 300, 40 }
             , "Показать статическую модель"
-            , Color{100, 100, 100}, Color{0, 0, 0} };
+            , Color{100, 100, 100}, Color{0, 0, 0}
+            , [&]() { showStaticModel(); } };
 
         Button bt_dinamyc{ hdc
-            , 150, rect_.bottom - 110, 300, 40
+            , RECT{ 150, rect_.bottom - 160, 300, 40 }
             , "Показать динамическую модель"
-            , Color{100, 100, 100}, Color{0, 0, 0} };
+            , Color{100, 100, 100}, Color{0, 0, 0}
+            , [&]() { showDinamycModel();  } };
 
         Button bt_random{ hdc
-            , 150, rect_.bottom - 60, 300, 40
+            , RECT{ 150, rect_.bottom - 110, 300, 40 }
             , "Показать модель с эффектом случайности"
-            , Color{100, 100, 100}, Color{0, 0, 0} };
+            , Color{100, 100, 100}, Color{0, 0, 0}
+            , [&]() { showRandomModel();  } };
 
+        Button bt_clear{ hdc
+            , RECT{ 150, rect_.bottom - 60, 300, 40 }
+            , "Очистить поле"
+            , Color{100, 100, 100}, Color{0, 0, 0}
+            , [&]() { clearModel();  } };
+
+
+
+    }
+
+    void GUIInterface::updateStyleWindow() const
+    {
+        LONG_PTR style_ptr{ SetWindowLongPtr(hwnd_, GWL_STYLE
+            , WS_SIZEBOX & ~WS_THICKFRAME | WS_MINIMIZEBOX | WS_SYSMENU | WS_CAPTION) };
+        SetWindowPos(hwnd_, 0, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_DRAWFRAME);
+        ShowWindow(hwnd_, SW_SHOW);
+    }
+
+    void GUIInterface::deletePropertiesFromSystemMenu() const
+    {
+        HMENU hMenu{ GetSystemMenu(hwnd_, false) };
+        DeleteMenu(hMenu, GetMenuItemCount(hMenu) - 1, MF_BYPOSITION);
+    }
+
+    void GUIInterface::disableSelectionInConsole() const
+    {
+        HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
+        DWORD prevConsoleMode = 0;
+        GetConsoleMode(hConsole, &prevConsoleMode);
+        SetConsoleMode(hConsole, ENABLE_EXTENDED_FLAGS |
+            (prevConsoleMode & ~ENABLE_QUICK_EDIT_MODE));
+    }
+
+    void GUIInterface::setWindowPosition() const
+    {
+        HANDLE handle{ GetStdHandle(STD_OUTPUT_HANDLE) };
+        auto window_pos_x{ (GetSystemMetrics(SM_CXSCREEN) >> 1) - (width_ >> 1) };
+        auto window_pos_y{ (GetSystemMetrics(SM_CYSCREEN) >> 1) - (height_ >> 1) };
+        MoveWindow(hwnd_, window_pos_x, window_pos_y, width_, height_, TRUE);
+    }
+
+    void GUIInterface::showStaticModel() const
+    {
+        std::cout << "dfgdfgdfgd";
+    }
+
+    void GUIInterface::showDinamycModel() const
+    {
+        std::cout << "ffffff";
+    }
+
+    void GUIInterface::showRandomModel() const
+    {
+        std::cout << "mnmmg";
+    }
+
+    void GUIInterface::clearModel() const
+    {
+        std::cout << "clear";
     }
 
     std::string GUIInterface::delimiter(char del) const
@@ -100,16 +175,12 @@ namespace KHAS {
             SelectObject(memDC, memBM);
             FillRect(memDC, &rect_, CreateSolidBrush(rgbToCRef(255, 255, 255)));
 
-
-
             showHeader(memDC);
             showMenu(memDC);
-
 
             BitBlt(hdc_, 0, 0, x, y, memDC, 0, 0, SRCCOPY);
             DeleteDC(memDC);
             DeleteObject(memBM);
-            Sleep(5);
         }
         
     }

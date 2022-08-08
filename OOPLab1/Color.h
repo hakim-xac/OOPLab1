@@ -8,7 +8,7 @@ namespace KHAS {
 		int R;
 		int G;
 		int B;
-		Color(int r = 0, int g = 0, int b = 0)
+		explicit Color(int r = 0, int g = 0, int b = 0)
 			: R(r)
 			, G(g)
 			, B(b) {}

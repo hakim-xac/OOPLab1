@@ -2,9 +2,6 @@
 #include "GUIInterface.h"
 
 
-
-
-
 int main()
 {
 

@@ -3,25 +3,37 @@
 
 #include <Windows.h>
 #include <string_view>
+#include <vector>
+#include "TPoint.h"
 
 namespace KHAS {
 
     class GUIInterface {
 
     private:
-        short width_ {};
-        short height_ {};
-        RECT rect_{};
-        HWND hwnd_{ nullptr };
-        HDC hdc_{ nullptr }; 
+        short width_;
+        short height_;
+        RECT rect_;
+        HWND hwnd_;
+        HDC hdc_; 
+        std::vector<tPoint> tPoints_;
 
     private:
 
-        void setSelfWindow();
-        void hideCursor() const;
-        void showHeader(HDC& hdc) const;
-        void showMenu(HDC& hdc) const;
-        std::string delimiter(char del) const;
+        std::string delimiter(char del)         const;
+        void setSelfWindow()                    const;
+        void hideCursor()                       const;
+        void showHeader(HDC& hdc)               const;
+        void showMenu(HDC& hdc)                 const;
+        void showStaticModel()                  const;
+        void showDinamycModel()                 const;
+        void showRandomModel()                  const;
+        void clearModel()                       const;
+        void setBufferWindowSize()              const;
+        void disableSelectionInConsole()        const;
+        void updateStyleWindow()                const;
+        void deletePropertiesFromSystemMenu()   const;
+        void setWindowPosition()                const;
 
         template <typename ... TString, typename = std::enable_if_t<
             (std::is_convertible_v<std::decay_t<TString>, std::string> && ...) >>
