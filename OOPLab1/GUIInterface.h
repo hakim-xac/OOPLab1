@@ -4,7 +4,10 @@
 #include <Windows.h>
 #include <string_view>
 #include <vector>
+#include <queue>
+#include <functional>
 #include "TPoint.h"
+#include "Task.h"
 
 namespace KHAS {
 
@@ -18,6 +21,7 @@ namespace KHAS {
         HWND hwnd_;
         HDC hdc_; 
         std::vector<tPoint> tPoints_;
+        std::queue<Task> queue_;
 
     private:
 
@@ -30,13 +34,22 @@ namespace KHAS {
         void updateStyleWindow()                const;
         void deletePropertiesFromSystemMenu()   const;
         void setWindowPosition()                const;
+        inline bool isKeyDown(int key)          const;
         void showTPoints()                           ;
         void showMenu(HDC& hdc)                      ;
+        void showMenuIfRandomMove()                  ;
+        void showMenuIfDynamicMove()                 ;
         void showStaticModel()                       ;
         void showDinamycModel()                      ;
         void showRandomModel()                       ;
         void clearModel()                            ; 
         void fillTPoints()                           ;
+        void readQueue()                             ;
+        void exitToMain()                            ;
+        void draw(std::function<void()> func)        ;
+        void movePoints(DirectionOfMoveOfPoints dmp = DirectionOfMoveOfPoints::EMPTY);
+
+        DirectionOfMoveOfPoints createmovePoints() const;
 
         template <typename ... TString, typename = std::enable_if_t<
             (std::is_convertible_v<std::decay_t<TString>, std::string> && ...) >>

@@ -33,7 +33,7 @@ namespace KHAS {
 		void setPositionY(int y);
 		void setPosition(int x, int y);
 		void draw(const HDC& hdc);
-		void move(const HDC& hdc, directionOfMovementOfPoints dmp);
+		void move(const HDC& hdc, DirectionOfMoveOfPoints dmp);
 
 
 	};

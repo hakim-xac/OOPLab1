@@ -12,7 +12,7 @@ namespace KHAS {
 		, Blue
 	};
 
-	enum class directionOfMovementOfPoints{
+	enum class DirectionOfMoveOfPoints{
 		LEFT
 		, RIGHT
 		, TOP
@@ -21,6 +21,7 @@ namespace KHAS {
 		, TOPRIGHT
 		, BOTTOMLEFT
 		, BOTTOMRIGHT
+		, EMPTY
 	};
 
 }

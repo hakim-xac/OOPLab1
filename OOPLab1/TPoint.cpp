@@ -61,43 +61,50 @@ namespace KHAS {
 
 
 	void tPoint::draw(const HDC& hdc) {
+
 		SetPixel(hdc, getPositionX() - 1, getPositionY(), colorToCRef(getColor()));
 		SetPixel(hdc, getPositionX() + 1, getPositionY(), colorToCRef(getColor()));
 		SetPixel(hdc, getPositionX(), getPositionY() + 1, colorToCRef(getColor()));
 		SetPixel(hdc, getPositionX(), getPositionY() - 1, colorToCRef(getColor()));
+		SetPixel(hdc, getPositionX() - 1, getPositionY() - 1, colorToCRef(getColor()));
+		SetPixel(hdc, getPositionX() + 1, getPositionY() + 1, colorToCRef(getColor()));
+		SetPixel(hdc, getPositionX() - 1, getPositionY() + 1, colorToCRef(getColor()));
+		SetPixel(hdc, getPositionX() + 1, getPositionY() - 1, colorToCRef(getColor()));
+
 		SetPixel(hdc, getPositionX(), getPositionY(), colorToCRef(getColor()));
+
 	}
 
-	void tPoint::move(const HDC& hdc, directionOfMovementOfPoints dmp) {
+	void tPoint::move(const HDC& hdc, DirectionOfMoveOfPoints dmp) {
 		switch (dmp)
 		{
-		case KHAS::directionOfMovementOfPoints::LEFT:
+		case KHAS::DirectionOfMoveOfPoints::LEFT:
 			--pos_x_;
 			break;
-		case KHAS::directionOfMovementOfPoints::RIGHT:
+		case KHAS::DirectionOfMoveOfPoints::RIGHT:
 			++pos_x_;
 			break;
-		case KHAS::directionOfMovementOfPoints::TOP:
-			++pos_y_;
-			break;
-		case KHAS::directionOfMovementOfPoints::BOTTOM:
+		case KHAS::DirectionOfMoveOfPoints::TOP:
 			--pos_y_;
 			break;
-		case KHAS::directionOfMovementOfPoints::TOPLEFT:
+		case KHAS::DirectionOfMoveOfPoints::BOTTOM:
 			++pos_y_;
+			break;
+		case KHAS::DirectionOfMoveOfPoints::TOPLEFT:
+			--pos_y_;
 			--pos_x_;
 			break;
-		case KHAS::directionOfMovementOfPoints::TOPRIGHT:
+		case KHAS::DirectionOfMoveOfPoints::TOPRIGHT:
 			++pos_x_;
+			--pos_y_;
+			break;
+		case KHAS::DirectionOfMoveOfPoints::BOTTOMLEFT:
+			--pos_x_;
 			++pos_y_;
 			break;
-		case KHAS::directionOfMovementOfPoints::BOTTOMLEFT:
-			--pos_x_;
-			--pos_y_;
-			break;
-		case KHAS::directionOfMovementOfPoints::BOTTOMRIGHT:
+		case KHAS::DirectionOfMoveOfPoints::BOTTOMRIGHT:
 			++pos_x_;
-			--pos_y_;
+			++pos_y_;
 			break;
 		default:
 			break;

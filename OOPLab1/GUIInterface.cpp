@@ -6,6 +6,9 @@
 #include <vector>
 #include <string_view>
 #include <iostream>
+#include <random>
+#include <algorithm>
+
 
 
 namespace KHAS {
@@ -17,7 +20,8 @@ namespace KHAS {
         , drawing_rectangle_()
         , hwnd_(GetConsoleWindow())
         , hdc_(GetDC(hwnd_))
-        , tPoints_() {
+        , tPoints_()
+        , queue_() {
 
             setSelfWindow();
 
@@ -81,32 +85,87 @@ namespace KHAS {
         auto del{ delimiter('=') };
         TextOut(hdc, 0, rect_.bottom - 260, del.c_str(), static_cast<int>(del.length()));
 
+        
+
         Button bt_static{ hdc
             , RECT{ 150, rect_.bottom - 210, 310, 40 }
             , "Показать статическую модель"
             , Color{100, 100, 100}, Color{0, 0, 0}
-            , [&]() { showStaticModel(); } };
+            , [&]() { 
+                queue_.push({ [&] { showStaticModel();  } });
+        } };
 
         Button bt_dinamyc{ hdc
             , RECT{ 150, rect_.bottom - 160, 310, 40 }
             , "Показать управляемую модель"
             , Color{100, 100, 100}, Color{0, 0, 0}
-            , [&]() { showDinamycModel();  } };
+            , [&]() {        
+                queue_.push({ [&] { showDinamycModel();  } });
+        } };
 
         Button bt_random{ hdc
             , RECT{ 150, rect_.bottom - 110, 310, 40 }
             , "Показать модель со случайным движением"
             , Color{100, 100, 100}, Color{0, 0, 0}
-            , [&]() { showRandomModel();  } };
+            , [&]() { 
+                queue_.push({ [&] { showRandomModel();  } });
+        } };
 
         Button bt_clear{ hdc
             , RECT{ 150, rect_.bottom - 60, 310, 40 }
             , "Очистить поле"
             , Color{100, 100, 100}, Color{0, 0, 0}
-            , [&]() { clearModel();  } };
+            , [&]() { 
+                queue_.push({ [&] { clearModel();  } });
+        } };
+
+    }
 
 
+    void GUIInterface::draw(std::function<void()> func) {
+        hideCursor();
+        HDC memDC{ CreateCompatibleDC(hdc_) };
+        auto x{ rect_.right - rect_.left };
+        auto y{ rect_.bottom - rect_.top };
+        HBITMAP memBM{ CreateCompatibleBitmap(hdc_, x, y) };
+        SelectObject(memDC, memBM);
+        FillRect(memDC, &rect_, CreateSolidBrush(rgbToCRef(255, 255, 255)));
+        showHeader(memDC);
 
+        func();
+
+
+        auto del{ delimiter('=') };
+        TextOut(memDC, 0, rect_.bottom - 260, del.c_str(), static_cast<int>(del.length()));
+
+        Button bt_exit{ memDC
+            , RECT{ 150, rect_.bottom - 60, 310, 40 }
+            , "Выход в меню"
+            , Color{100, 100, 100}, Color{0, 0, 0}
+            , [&]() {
+                queue_.push({ [&] { exitToMain();  } });
+        } };
+
+
+        BitBlt(hdc_, 0, 0, x, y, memDC, 0, 0, SRCCOPY);
+        DeleteDC(memDC);
+        DeleteObject(memBM);
+    }
+
+    void GUIInterface::showMenuIfRandomMove()
+    {        
+        movePoints();
+        showTPoints();       
+    }
+
+    void GUIInterface::showMenuIfDynamicMove()
+    {        
+        if (isKeyDown(VK_UP)) movePoints(DirectionOfMoveOfPoints::TOP);
+        if (isKeyDown(VK_DOWN)) movePoints(DirectionOfMoveOfPoints::BOTTOM);
+        if (isKeyDown(VK_LEFT)) movePoints(DirectionOfMoveOfPoints::LEFT);
+        if (isKeyDown(VK_RIGHT)) movePoints(DirectionOfMoveOfPoints::RIGHT);
+        showTPoints();
+        
     }
 
     void GUIInterface::updateStyleWindow() const
@@ -156,6 +215,44 @@ namespace KHAS {
         }
     }
 
+    void GUIInterface::movePoints(DirectionOfMoveOfPoints dmp) {
+
+        auto dmp_copy{ dmp };
+        std::for_each(tPoints_.begin(), tPoints_.end(), [&](auto&& elem) {
+            if (dmp == DirectionOfMoveOfPoints::EMPTY) dmp_copy = createmovePoints();
+            elem.move(hdc_, dmp_copy);
+            });
+    }
+
+    DirectionOfMoveOfPoints GUIInterface::createmovePoints() const
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution dist(1, 8);
+        DirectionOfMoveOfPoints dmp{ DirectionOfMoveOfPoints::TOP };
+        switch (dist(gen)) {
+        case 1: dmp = DirectionOfMoveOfPoints::TOP;
+            break;
+        case 2: dmp = DirectionOfMoveOfPoints::TOPRIGHT;
+            break;
+        case 3: dmp = DirectionOfMoveOfPoints::RIGHT;
+            break;
+        case 4: dmp = DirectionOfMoveOfPoints::BOTTOMRIGHT;
+            break;
+        case 5: dmp = DirectionOfMoveOfPoints::BOTTOM;
+            break;
+        case 6: dmp = DirectionOfMoveOfPoints::BOTTOMLEFT;
+            break;
+        case 7: dmp = DirectionOfMoveOfPoints::LEFT;
+            break;
+        case 8: dmp = DirectionOfMoveOfPoints::TOPLEFT;
+            break;
+        default: dmp = DirectionOfMoveOfPoints::TOP;
+            break;
+        }
+        return dmp;
+    }
+
     void GUIInterface::showStaticModel()
     {
         fillTPoints();
@@ -165,19 +262,28 @@ namespace KHAS {
     void GUIInterface::showDinamycModel()
     {
         fillTPoints();
-        showTPoints();
+        while (!isKeyDown(VK_RETURN)) {
+            draw([&] { showMenuIfDynamicMove();  });
+            readQueue();
+        }
+        tPoints_.clear();
+        if (isKeyDown(VK_RETURN)) keybd_event(VK_RETURN, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
     }
 
     void GUIInterface::showRandomModel()
     {
         fillTPoints();
-        showTPoints();
-        //randomMovement();
+        while (!isKeyDown(VK_RETURN)) {
+            draw([&] { showMenuIfRandomMove();  });
+            readQueue();
+        }
+        tPoints_.clear();
+        if(isKeyDown(VK_RETURN)) keybd_event(VK_RETURN, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
     }
 
     void GUIInterface::clearModel()
     {
-        std::cout << "clear";
+        tPoints_.clear();
     }
 
     std::string GUIInterface::delimiter(char del) const
@@ -185,10 +291,28 @@ namespace KHAS {
         return std::string(width_, del);
     }
 
+    void GUIInterface::readQueue()
+    {
+        while (!queue_.empty()) {
+            auto task{ queue_.front() };
+            queue_.pop();
+            task.f();
+        }
+    }
+
+    void GUIInterface::exitToMain()
+    {
+        keybd_event(VK_RETURN, 0, KEYEVENTF_EXTENDEDKEY, 0);
+    }
+
+    inline bool GUIInterface::isKeyDown(int key) const {
+        return (GetKeyState(key) & 0x8000) != 0;
+    }
+
+
     void GUIInterface::loop()
     {       
-
-        while (GetKeyState(VK_ESCAPE) >= 0) {
+        while (!isKeyDown(VK_ESCAPE)) {
             hideCursor();
             HDC memDC{ CreateCompatibleDC(hdc_) };
             auto x{ rect_.right - rect_.left };
@@ -196,14 +320,14 @@ namespace KHAS {
             HBITMAP memBM{ CreateCompatibleBitmap(hdc_, x, y) };
             SelectObject(memDC, memBM);
             FillRect(memDC, &rect_, CreateSolidBrush(rgbToCRef(255, 255, 255)));
-
             showHeader(memDC);
             showMenu(memDC);
             showTPoints();
-
             BitBlt(hdc_, 0, 0, x, y, memDC, 0, 0, SRCCOPY);
             DeleteDC(memDC);
             DeleteObject(memBM);
+
+            readQueue();
         }
         
     }
